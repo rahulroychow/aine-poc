@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import TodoList from './components/TodoList'
 import TodoForm from './components/TodoForm'
-import { createTodo } from './api/todoApi'
+import { createTodo, updateTodo } from './api/todoApi'
 
 function App() {
   const [todos, setTodos] = useState([])
@@ -29,6 +29,35 @@ function App() {
     }
   }
 
+  const handleToggleTodo = async (todoId) => {
+    try {
+      // Find the current todo to get its current state
+      const currentTodo = todos.find((t) => t.id === todoId)
+      if (!currentTodo) {
+        console.error('Todo not found:', todoId)
+        return
+      }
+
+      // Toggle the completed status
+      const updatedTodo = await updateTodo(todoId, {
+        completed: !currentTodo.completed
+      })
+
+      // Update state with the returned todo
+      setTodos((prevTodos) =>
+        prevTodos.map((t) =>
+          t.id === todoId
+            ? { ...t, ...updatedTodo }
+            : t
+        )
+      )
+    } catch (error) {
+      // Show error alert to user
+      alert('Failed to update todo. Please try again.')
+      console.error('Error toggling todo:', error)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -51,7 +80,7 @@ function App() {
 
         <main>
           <TodoForm onAddTodo={handleAddTodo} />
-          <TodoList todos={todos} />
+          <TodoList todos={todos} onToggleTodo={handleToggleTodo} />
         </main>
       </div>
     </div>

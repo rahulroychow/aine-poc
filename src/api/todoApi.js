@@ -33,11 +33,13 @@ export async function createTodo(description) {
 /**
  * Update an existing todo
  * @param {string} todoId - The ID of the todo to update
- * @param {Object} updates - The fields to update
- * @returns {Promise<Object>} The updated todo object
+ * @param {Object} updates - The fields to update (e.g., {completed: true})
+ * @returns {Promise<Object>} The updated todo object with all fields preserved
  */
 export async function updateTodo(todoId, updates) {
   // TODO: Replace with actual API call
+  // For now, this is a mock that returns the updated object
+  // In a real app, this would merge updates with existing todo from a database
   return Promise.resolve({
     id: todoId,
     ...updates

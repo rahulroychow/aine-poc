@@ -1,4 +1,4 @@
-function TodoList({ todos }) {
+function TodoList({ todos, onToggleTodo }) {
   // Empty state
   if (todos.length === 0) {
     return (
@@ -42,8 +42,8 @@ function TodoList({ todos }) {
             <input
               type="checkbox"
               checked={todo.completed || false}
-              readOnly
-              className="h-5 w-5 text-blue-600 rounded border-gray-300"
+              onChange={() => onToggleTodo(todo.id)}
+              className="h-5 w-5 text-blue-600 rounded border-gray-300 cursor-pointer"
               aria-label={`Mark "${todo.description}" as complete`}
             />
           </div>
