@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import TodoList from './components/TodoList'
 import TodoForm from './components/TodoForm'
-import { createTodo, updateTodo } from './api/todoApi'
+import { createTodo, updateTodo, deleteTodo } from './api/todoApi'
 
 function App() {
   const [todos, setTodos] = useState([])
@@ -58,6 +58,22 @@ function App() {
     }
   }
 
+  const handleDeleteTodo = async (todoId) => {
+    try {
+      // Call the delete API
+      await deleteTodo(todoId)
+
+      // Remove todo from state (optimistic update)
+      setTodos((prevTodos) =>
+        prevTodos.filter((t) => t.id !== todoId)
+      )
+    } catch (error) {
+      // Show error alert to user
+      alert('Failed to delete todo. Please try again.')
+      console.error('Error deleting todo:', error)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -80,7 +96,7 @@ function App() {
 
         <main>
           <TodoForm onAddTodo={handleAddTodo} />
-          <TodoList todos={todos} onToggleTodo={handleToggleTodo} />
+          <TodoList todos={todos} onToggleTodo={handleToggleTodo} onDeleteTodo={handleDeleteTodo} />
         </main>
       </div>
     </div>
