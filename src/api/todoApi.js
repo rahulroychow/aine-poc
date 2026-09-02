@@ -1,87 +1,75 @@
 /**
- * Mock API functions for todo management
- * These are placeholder functions that define the API contract
- * Real implementation will replace these with actual backend calls
+ * Todo API.
+ *
+ * This release has no server-backed persistence — todos live in localStorage,
+ * written by App.jsx. This module is the seam that a real HTTP client will slot
+ * into: it keeps an in-memory record so `updateTodo` can merge against the
+ * stored todo the way a server would, and so the call signatures stay stable
+ * when the implementation is swapped out.
  */
 
 import { generateId } from '../utils/generateId.js'
 
+/** @type {Array<{id: string, description: string, completed: boolean, createdAt: string}>} */
+let store = []
+
 /**
- * Fetch all todos
- * @returns {Promise<Array>} Array of todo objects
+ * Fetch all todos.
+ * @returns {Promise<Array<object>>}
  */
 export async function getTodos() {
-  // TODO: Replace with actual API call
-  return Promise.resolve([])
+  return store.map((todo) => ({ ...todo }))
 }
 
 /**
- * Create a new todo
- * @param {string} description - The description of the todo
- * @returns {Promise<Object>} The created todo object with {id, description, completed, createdAt}
+ * Create a todo.
+ * @param {string} description
+ * @returns {Promise<object>} The created todo.
  */
 export async function createTodo(description) {
-  // TODO: Replace with actual API call
-  const newTodo = {
+  const todo = {
     id: generateId(),
     description,
     completed: false,
     createdAt: new Date().toISOString()
   }
-
-  // For testing purposes, store in-memory so updateTodo can access
-  if (typeof window !== 'undefined') {
-    if (!window.__todoStore) {
-      window.__todoStore = []
-    }
-    window.__todoStore.push(newTodo)
-  }
-
-  return Promise.resolve(newTodo)
+  store.push(todo)
+  return { ...todo }
 }
 
 /**
- * Update an existing todo
- * @param {string} todoId - The ID of the todo to update
- * @param {Object} updates - The fields to update (e.g., {completed: true})
- * @returns {Promise<Object>} The updated todo object with all fields preserved
+ * Merge updates into an existing todo, preserving untouched fields.
+ *
+ * Falls back to `{id, ...updates}` when the id is unknown — which happens after
+ * a page reload, where todos are rehydrated from localStorage into App state
+ * but this module's store starts empty.
+ *
+ * @param {string} todoId
+ * @param {object} updates
+ * @returns {Promise<object>} The updated todo.
  */
 export async function updateTodo(todoId, updates) {
-  // TODO: Replace with actual API call
-  // In a real app, this would:
-  // 1. Fetch the existing todo from database
-  // 2. Merge updates with existing fields
-  // 3. Save to database
-  // 4. Return the merged object
+  const index = store.findIndex((todo) => todo.id === todoId)
 
-  // For testing purposes, we need to track created todos in-memory
-  // This allows updateTodo to preserve fields from the original creation
-  if (typeof window !== 'undefined' && window.__todoStore) {
-    const existing = window.__todoStore.find(t => t.id === todoId)
-    if (existing) {
-      const updated = { ...existing, ...updates }
-      // Update the store
-      const index = window.__todoStore.findIndex(t => t.id === todoId)
-      if (index !== -1) {
-        window.__todoStore[index] = updated
-      }
-      return Promise.resolve(updated)
-    }
+  if (index === -1) {
+    return { id: todoId, ...updates }
   }
 
-  // Fallback: just return what we can merge
-  return Promise.resolve({
-    id: todoId,
-    ...updates
-  })
+  store[index] = { ...store[index], ...updates, id: todoId }
+  return { ...store[index] }
 }
 
 /**
- * Delete a todo
- * @param {string} todoId - The ID of the todo to delete
+ * Delete a todo. Deleting an unknown id is a no-op, matching idempotent
+ * DELETE semantics.
+ * @param {string} todoId
  * @returns {Promise<void>}
  */
 export async function deleteTodo(todoId) {
-  // TODO: Replace with actual API call
-  return Promise.resolve()
+  store = store.filter((todo) => todo.id !== todoId)
+}
+
+/** Clear the in-memory store. Test helper. */
+export function __resetStore() {
+  store = []
 }

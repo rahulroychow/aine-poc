@@ -1,0 +1,54 @@
+# Base stack. Build context is the repo root (`..`), so Dockerfiles can copy
+# package.json / src / server from the project root.
+#
+#   docker compose -f docker/compose.yml up
+#
+# Environment overlays live alongside this file: compose.dev.yml,
+# compose.test.yml, compose.prod.yml. See docker/README.md.
+
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
+    container_name: aine-server
+    ports:
+      - "${SERVER_PORT:-5000}:5000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 5000
+    networks:
+      - aine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/app.Dockerfile
+    container_name: aine-app
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - aine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  aine:
+    driver: bridge

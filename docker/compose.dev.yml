@@ -1,0 +1,15 @@
+# Development overlay — verbose logging, fail-fast restarts.
+#
+#   docker compose -f docker/compose.yml -f docker/compose.dev.yml up
+
+services:
+  server:
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    restart: "no"
+
+  app:
+    environment:
+      NODE_ENV: development
+    restart: "no"

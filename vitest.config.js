@@ -2,33 +2,45 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  plugins: [react({ jsxImportSource: 'react' })],
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.js'],
-    exclude: ['e2e/**', 'node_modules/**'],
+    // Two projects: the React app needs jsdom, the Express app needs node.
+    // e2e/ belongs to Playwright and is deliberately absent from both.
+    projects: [
+      {
+        plugins: [react()],
+        test: {
+          name: 'client',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./src/test/setup.js'],
+          include: ['src/**/*.test.{js,jsx}']
+        }
+      },
+      {
+        test: {
+          name: 'server',
+          environment: 'node',
+          globals: true,
+          include: ['server/**/*.test.js']
+        }
+      }
+    ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/**/*.{js,jsx}'],
-      exclude: ['src/main.jsx', 'src/test/**', '**/__tests__/**'],
-      lines: 70,
-      functions: 70,
-      branches: 70,
-      statements: 70
-    },
-    transformMode: {
-      web: [/.[jt]sx?$/]
+      reporter: ['text', 'html', 'lcov'],
+      include: ['src/**/*.{js,jsx}', 'server/**/*.js'],
+      exclude: [
+        'src/main.jsx', // DOM bootstrap: mounts React, no branching logic
+        'server/server.js', // port bootstrap: the behaviour lives in app.js
+        'src/test/**',
+        '**/*.test.{js,jsx}'
+      ],
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100
+      }
     }
-  },
-  resolve: {
-    alias: {
-      '@': '/src'
-    }
-  },
-  esbuild: {
-    include: /src\/.*\.jsx?$/,
-    exclude: []
   }
 })

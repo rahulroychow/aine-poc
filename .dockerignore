@@ -1,57 +1,38 @@
-# Git
+# Build context lives at the repo root (see docker/compose.yml). Everything
+# below is either rebuilt inside the image or irrelevant to it.
+
 .git
 .gitignore
-.gitattributes
 
-# Dependencies
 node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+*.log
 
-# Build outputs
 dist
 build
-.next
-out
 
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Testing
 coverage
-.nyc_output
 test-results
 playwright-report
-.playwright
+e2e
+**/*.test.js
+**/*.test.jsx
+src/test
 
-# Environment
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
-# Documentation
+docker
+Makefile
 README.md
-CHANGELOG.md
 
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
+.vscode
+.idea
+.DS_Store
 
-# CI/CD
-.github
-.gitlab-ci.yml
-.travis.yml
-Jenkinsfile
-
-# Project specific
-_bmad*
+# BMad tooling and planning artifacts
+_bmad
+_bmad-output
 .claude
-.cache
+__pycache__
+*.pyc

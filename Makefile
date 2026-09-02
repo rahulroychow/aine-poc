@@ -1,122 +1,58 @@
-.PHONY: help build up down restart logs ps health clean dev test prod
+# Thin wrapper over docker compose. The stack lives in docker/ and always
+# builds from the repo root, so every target sets the compose file explicitly.
 
-# Docker Compose helpers
+COMPOSE      := docker compose -f docker/compose.yml
+COMPOSE_DEV  := $(COMPOSE) -f docker/compose.dev.yml
+COMPOSE_TEST := $(COMPOSE) -f docker/compose.test.yml
+COMPOSE_PROD := $(COMPOSE) -f docker/compose.prod.yml
+
 .DEFAULT_GOAL := help
+.PHONY: help build up dev prod down logs ps health shell-app shell-server clean test test-e2e
 
-help:
-	@echo "🐳 Aine POC Docker Commands"
-	@echo ""
-	@echo "Build:"
-	@echo "  make build           Build all services"
-	@echo "  make build-app       Build frontend only"
-	@echo "  make build-server    Build backend only"
-	@echo ""
-	@echo "Run:"
-	@echo "  make up              Start all services"
-	@echo "  make up-app          Start frontend only"
-	@echo "  make up-server       Start backend only"
-	@echo "  make dev             Start in development mode"
-	@echo "  make test            Start in test mode"
-	@echo "  make prod            Start in production mode"
-	@echo ""
-	@echo "Manage:"
-	@echo "  make down            Stop all services"
-	@echo "  make restart         Restart all services"
-	@echo "  make logs            View logs"
-	@echo "  make ps              Show container status"
-	@echo "  make health          Check service health"
-	@echo "  make clean           Stop and remove containers"
-	@echo "  make shell-app       Shell into app container"
-	@echo "  make shell-server    Shell into server container"
-	@echo ""
+help: ## Show this help
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-build:
-	docker-compose build
+## ---- Docker ----
 
-build-app:
-	docker-compose build app
+build: ## Build both images
+	$(COMPOSE) build
 
-build-server:
-	docker-compose build server
+up: ## Start the stack in the background
+	$(COMPOSE) up -d
 
-up:
-	docker-compose up -d
-	@sleep 2
-	@$(MAKE) ps
+dev: ## Start with the development overlay
+	$(COMPOSE_DEV) up
 
-up-app:
-	docker-compose --profile app up -d
-	@sleep 2
-	@$(MAKE) ps
+prod: ## Start with the production overlay
+	$(COMPOSE_PROD) up -d
 
-up-server:
-	docker-compose --profile server up -d
-	@sleep 2
-	@$(MAKE) ps
+down: ## Stop and remove containers
+	$(COMPOSE) down
 
-dev:
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-	@sleep 2
-	@$(MAKE) ps
+logs: ## Follow logs from both services
+	$(COMPOSE) logs -f
 
-test:
-	docker-compose -f docker-compose.yml -f docker-compose.test.yml up -d
-	@sleep 2
-	@$(MAKE) ps
+ps: ## Show container status and health
+	$(COMPOSE) ps
 
-prod:
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-	@sleep 2
-	@$(MAKE) ps
+health: ## Curl the health endpoints
+	@echo "app:"    && curl -fsS http://localhost:3000/ >/dev/null && echo "  ok" || echo "  unreachable"
+	@echo "server:" && curl -fsS http://localhost:5000/health || echo "  unreachable"
 
-down:
-	docker-compose down
+shell-app: ## Open a shell in the app container
+	$(COMPOSE) exec app sh
 
-restart:
-	docker-compose restart
+shell-server: ## Open a shell in the server container
+	$(COMPOSE) exec server sh
 
-logs:
-	docker-compose logs -f
+clean: ## Stop containers and drop volumes
+	$(COMPOSE) down -v
 
-logs-app:
-	docker-compose logs -f app
+## ---- Tests (run on the host, not in Docker) ----
 
-logs-server:
-	docker-compose logs -f server
+test: ## Unit + component tests with coverage
+	npm run test:coverage
 
-ps:
-	docker-compose ps
-
-health:
-	@echo "🔍 Checking Frontend..."
-	@curl -s http://localhost:3000 > /dev/null && echo "✓ Frontend is healthy" || echo "✗ Frontend is not responding"
-	@echo ""
-	@echo "🔍 Checking Backend Health..."
-	@curl -s http://localhost:5000/health | jq . 2>/dev/null || echo "✗ Backend is not responding"
-
-clean:
-	docker-compose down
-
-clean-all:
-	docker-compose down -v
-
-prune:
-	docker system prune -f
-
-shell-app:
-	docker-compose exec app sh
-
-shell-server:
-	docker-compose exec server sh
-
-verify:
-	@echo "✓ Docker: $$(docker --version)"
-	@echo "✓ Docker Compose: $$(docker-compose --version)"
-	@docker ps > /dev/null && echo "✓ Docker daemon is running" || echo "✗ Docker daemon is not running"
-
-info:
-	@echo "=== Docker System Info ==="
-	@docker system df
-	@echo ""
-	@echo "=== Running Services ==="
-	@docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+test-e2e: ## Playwright end-to-end tests
+	npm run test:e2e

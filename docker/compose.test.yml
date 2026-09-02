@@ -1,0 +1,17 @@
+# Test / CI overlay — fail fast rather than restart-loop.
+#
+#   docker compose -f docker/compose.yml -f docker/compose.test.yml up --abort-on-container-exit
+#
+# To avoid host port collisions between parallel CI jobs, set APP_PORT and
+# SERVER_PORT in the job environment; compose.yml reads both.
+
+services:
+  server:
+    environment:
+      NODE_ENV: test
+    restart: "no"
+
+  app:
+    environment:
+      NODE_ENV: test
+    restart: "no"
