@@ -1,0 +1,22 @@
+generated: 09-01-2026 00:00
+last_updated: 09-01-2026 00:00
+project: aine-poc
+project_key: NOKEY
+tracking_system: file-system
+story_location: "implementation-artifacts"
+
+development_status:
+  epic-1: backlog
+  1-1-display-todo-list-on-app-load: backlog
+  1-2-create-a-new-todo: backlog
+  1-3-mark-todo-as-complete: backlog
+  1-4-delete-a-todo: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-save-todos-to-localstorage-when-they-change: backlog
+  2-2-load-todos-from-localstorage-on-app-start: backlog
+  2-3-handle-localstorage-errors-gracefully: backlog
+  epic-2-retrospective: optional
+
+action_items: []
