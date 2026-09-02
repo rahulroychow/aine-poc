@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createTodo, updateTodo, deleteTodo, getTodos } from '../todoApi'
 
 describe('Todo API', () => {
   beforeEach(() => {
-    localStorage.clear()
+    if (global.localStorage && global.localStorage.clear) {
+      global.localStorage.clear()
+    }
   })
 
   describe('createTodo', () => {

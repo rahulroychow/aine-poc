@@ -5,7 +5,10 @@
       "Bash(curl -s http://localhost:5173)",
       "Bash(npm install *)",
       "Bash(git add *)",
-      "Bash(git commit -m 'feat: add comprehensive test suite *)"
+      "Bash(git commit -m 'feat: add comprehensive test suite *)",
+      "Bash(git push *)",
+      "Bash(npm test *)",
+      "Bash(git commit -m 'fix: improve test setup and localStorage mocking for unit tests *)"
     ]
   }
 }
