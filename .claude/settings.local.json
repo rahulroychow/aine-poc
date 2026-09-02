@@ -2,15 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(git init *)",
-      "Bash(curl -s http://localhost:5173)",
-      "Bash(npm run *)",
-      "Bash(curl -s http://localhost:5173/)",
-      "Bash(cat)",
-      "Read(//tmp/**)",
-      "Bash(pkill -f \"vite\")",
-      "Bash(node /tmp/test-patches.mjs)",
-      "Bash(git add *)",
-      "Bash(git commit -m 'feat: story 1-2 - create a new todo *)"
+      "Bash(curl -s http://localhost:5173)"
     ]
   }
 }
