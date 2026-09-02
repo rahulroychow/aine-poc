@@ -22,12 +22,22 @@ export async function getTodos() {
  */
 export async function createTodo(description) {
   // TODO: Replace with actual API call
-  return Promise.resolve({
+  const newTodo = {
     id: generateId(),
     description,
     completed: false,
     createdAt: new Date().toISOString()
-  })
+  }
+
+  // For testing purposes, store in-memory so updateTodo can access
+  if (typeof window !== 'undefined') {
+    if (!window.__todoStore) {
+      window.__todoStore = []
+    }
+    window.__todoStore.push(newTodo)
+  }
+
+  return Promise.resolve(newTodo)
 }
 
 /**
@@ -38,8 +48,28 @@ export async function createTodo(description) {
  */
 export async function updateTodo(todoId, updates) {
   // TODO: Replace with actual API call
-  // For now, this is a mock that returns the updated object
-  // In a real app, this would merge updates with existing todo from a database
+  // In a real app, this would:
+  // 1. Fetch the existing todo from database
+  // 2. Merge updates with existing fields
+  // 3. Save to database
+  // 4. Return the merged object
+
+  // For testing purposes, we need to track created todos in-memory
+  // This allows updateTodo to preserve fields from the original creation
+  if (typeof window !== 'undefined' && window.__todoStore) {
+    const existing = window.__todoStore.find(t => t.id === todoId)
+    if (existing) {
+      const updated = { ...existing, ...updates }
+      // Update the store
+      const index = window.__todoStore.findIndex(t => t.id === todoId)
+      if (index !== -1) {
+        window.__todoStore[index] = updated
+      }
+      return Promise.resolve(updated)
+    }
+  }
+
+  // Fallback: just return what we can merge
   return Promise.resolve({
     id: todoId,
     ...updates

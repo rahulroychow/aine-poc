@@ -12,10 +12,19 @@ global.localStorage = {
   length: 0
 }
 
+// Mock window for tests
+if (typeof window !== 'undefined') {
+  window.__todoStore = []
+}
+
 // Cleanup after each test
 afterEach(() => {
   cleanup()
   if (global.localStorage && global.localStorage.clear) {
     global.localStorage.clear()
+  }
+  // Clear in-memory todo store
+  if (typeof window !== 'undefined') {
+    window.__todoStore = []
   }
 })
