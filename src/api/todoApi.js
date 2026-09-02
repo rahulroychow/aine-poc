@@ -4,6 +4,8 @@
  * Real implementation will replace these with actual backend calls
  */
 
+import { generateId } from '../utils/generateId.js'
+
 /**
  * Fetch all todos
  * @returns {Promise<Array>} Array of todo objects
@@ -15,16 +17,14 @@ export async function getTodos() {
 
 /**
  * Create a new todo
- * @param {Object} todoData - The todo data to create
- * @param {string} todoData.title - The title of the todo
- * @param {string} todoData.description - The description of the todo
- * @returns {Promise<Object>} The created todo object
+ * @param {string} description - The description of the todo
+ * @returns {Promise<Object>} The created todo object with {id, description, completed, createdAt}
  */
-export async function createTodo(todoData) {
+export async function createTodo(description) {
   // TODO: Replace with actual API call
   return Promise.resolve({
-    id: Date.now(),
-    ...todoData,
+    id: generateId(),
+    description,
     completed: false,
     createdAt: new Date().toISOString()
   })

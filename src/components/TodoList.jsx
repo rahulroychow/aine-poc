@@ -44,7 +44,7 @@ function TodoList({ todos }) {
               checked={todo.completed || false}
               readOnly
               className="h-5 w-5 text-blue-600 rounded border-gray-300"
-              aria-label={`Mark "${todo.title}" as complete`}
+              aria-label={`Mark "${todo.description}" as complete`}
             />
           </div>
 
@@ -57,13 +57,8 @@ function TodoList({ todos }) {
                   : 'text-gray-900'
               }`}
             >
-              {todo.title}
+              {todo.description}
             </h3>
-            {todo.description && (
-              <p className="text-sm text-gray-600 mt-1 break-words">
-                {todo.description}
-              </p>
-            )}
           </div>
 
           {/* Status badge */}

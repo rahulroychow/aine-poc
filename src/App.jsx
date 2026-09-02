@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import TodoList from './components/TodoList'
+import TodoForm from './components/TodoForm'
+import { createTodo } from './api/todoApi'
 
 function App() {
   const [todos, setTodos] = useState([])
@@ -11,6 +13,21 @@ function App() {
     setTodos([])
     setIsLoading(false)
   }, [])
+
+  const handleAddTodo = async (description) => {
+    try {
+      // Create a new todo with unique ID and timestamp
+      const newTodo = await createTodo(description)
+
+      // Add it to the App state (optimistic update)
+      setTodos((prevTodos) => [newTodo, ...prevTodos])
+    } catch (error) {
+      // Show error alert to user
+      alert('Failed to create todo. Please try again.')
+      // Re-throw the error so TodoForm can handle it
+      throw error
+    }
+  }
 
   if (isLoading) {
     return (
@@ -33,6 +50,7 @@ function App() {
         </header>
 
         <main>
+          <TodoForm onAddTodo={handleAddTodo} />
           <TodoList todos={todos} />
         </main>
       </div>
