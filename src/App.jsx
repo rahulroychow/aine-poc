@@ -7,12 +7,71 @@ function App() {
   const [todos, setTodos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // Story 2-2: Load todos from localStorage on app mount
   useEffect(() => {
-    // Initialize with empty todo list on app load
-    // In a real app, this would fetch from an API
-    setTodos([])
-    setIsLoading(false)
+    try {
+      const savedTodos = localStorage.getItem('aine-todos')
+      if (savedTodos) {
+        const parsedTodos = JSON.parse(savedTodos)
+        setTodos(parsedTodos)
+      } else {
+        setTodos([])
+      }
+    } catch (error) {
+      // Story 2-3: Handle corrupted JSON or access denied
+      console.error('Error loading todos from localStorage:', error)
+      if (error instanceof SyntaxError) {
+        // Corrupted JSON: reset to empty array
+        alert('Corrupted todo data detected. Starting with an empty list.')
+        setTodos([])
+      } else if (error.name === 'QuotaExceededError') {
+        // Access denied or quota exceeded on load
+        alert('Unable to access storage. Working with in-memory storage only.')
+        setTodos([])
+      } else {
+        // Other errors: fall back to empty array
+        alert('Failed to load todos. Starting with an empty list.')
+        setTodos([])
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
+
+  // Story 2-1 & 2-3: Save todos to localStorage whenever they change
+  useEffect(() => {
+    // Skip save on initial mount (loading state)
+    if (isLoading) return
+
+    try {
+      localStorage.setItem('aine-todos', JSON.stringify(todos))
+    } catch (error) {
+      // Story 2-3: Handle quota exceeded and other errors
+      if (error.name === 'QuotaExceededError') {
+        // Quota exceeded: clear oldest todos and retry
+        console.error('localStorage quota exceeded, clearing oldest todos')
+        try {
+          // Keep only the most recent todos (remove oldest)
+          const reducedTodos = todos.slice(0, Math.max(1, Math.floor(todos.length / 2)))
+          localStorage.setItem('aine-todos', JSON.stringify(reducedTodos))
+          setTodos(reducedTodos)
+          alert('Storage quota exceeded. Some older todos were removed to save your current work.')
+        } catch (retryError) {
+          // Even after clearing, still fails - fall back to in-memory
+          console.error('Still unable to save after clearing, falling back to in-memory', retryError)
+          alert('Unable to save todos to storage. Your changes are kept in memory but will be lost on refresh.')
+        }
+      } else if (error.name === 'SecurityError' || error.message.includes('access denied')) {
+        // Access denied (private browsing mode, etc.)
+        console.error('localStorage access denied:', error)
+        alert('Storage is not accessible. Your changes are kept in memory but will be lost on refresh.')
+      } else {
+        // Other errors
+        console.error('Error saving todos to localStorage:', error)
+        alert('Failed to save todos. Your changes are kept in memory but will be lost on refresh.')
+      }
+    }
+  }, [todos, isLoading])
 
   const handleAddTodo = async (description) => {
     try {
