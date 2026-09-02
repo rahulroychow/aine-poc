@@ -3,6 +3,16 @@ import TodoList from './components/TodoList'
 import TodoForm from './components/TodoForm'
 import { createTodo, updateTodo, deleteTodo } from './api/todoApi'
 
+/** True when a value rehydrated from storage has the AD-4 todo shape. */
+function isTodoShaped(value) {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof value.id === 'string' &&
+    typeof value.description === 'string'
+  )
+}
+
 function App() {
   const [todos, setTodos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -13,7 +23,14 @@ function App() {
       const savedTodos = localStorage.getItem('aine-todos')
       if (savedTodos) {
         const parsedTodos = JSON.parse(savedTodos)
-        setTodos(parsedTodos)
+        // Valid JSON is not enough: a tampered or foreign value under our key
+        // (an object, null, a list of numbers) would crash the render. Keep
+        // only entries that match the AD-4 schema and treat anything else as
+        // corrupt.
+        if (!Array.isArray(parsedTodos)) {
+          throw new SyntaxError('Stored todos are not a list')
+        }
+        setTodos(parsedTodos.filter(isTodoShaped))
       } else {
         setTodos([])
       }

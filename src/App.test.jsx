@@ -75,6 +75,28 @@ describe('App — recovering from unreadable storage', () => {
     expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Corrupted todo data'))
   })
 
+  it('treats valid JSON that is not a list as corrupt', async () => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: 'x', description: 'not a list' }))
+
+    render(<App />)
+
+    expect(await screen.findByText('No todos yet')).toBeInTheDocument()
+    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Corrupted todo data'))
+  })
+
+  it('drops list entries that do not have the todo shape', async () => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([null, 42, { id: 'ok', description: 'Kept', completed: false }, { description: 'no id' }])
+    )
+
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Kept' })).toBeInTheDocument()
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+    expect(alertSpy).not.toHaveBeenCalled()
+  })
+
   it('warns and starts empty when storage reports a quota failure on read', async () => {
     window.localStorage.getItem.mockImplementationOnce(() => { throw quotaError() })
 
@@ -117,7 +139,7 @@ describe('App — adding a todo', () => {
     await user.type(input(), 'Second{Enter}')
     await screen.findByText('Second')
 
-    const headings = screen.getAllByRole('heading', { level: 3 })
+    const headings = screen.getAllByRole('heading', { level: 2 })
     expect(headings.map((h) => h.textContent)).toEqual(['Second', 'First'])
   })
 

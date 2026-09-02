@@ -6,7 +6,9 @@ is kept narrow so the foundation stays easy to read and extend.
 
 Built with React + Vite on the frontend and a small Express service that
 currently exposes health endpoints and reserves the API surface for a future
-server-backed store.
+server-backed store. Persistence is client-side by decision: the BMad PRD
+interview scoped v1 to localStorage with no real backend, and the architecture
+follows that. See [docs/BMAD_PROCESS.md](docs/BMAD_PROCESS.md).
 
 ---
 
@@ -71,6 +73,18 @@ aine-poc/
 │   ├── todos.spec.js         Playwright functional journeys
 │   └── accessibility.spec.js axe-core WCAG audit + keyboard/focus/reflow checks
 │
+├── docs/                     Process and QA documentation
+│   ├── AI_INTEGRATION_LOG.md Agent usage, MCP, test generation, debugging, limitations
+│   ├── BMAD_PROCESS.md       How BMad guided the build; scope decisions
+│   ├── FRAMEWORK_COMPARISON.md  BMad vs unstructured prompting, on this project
+│   ├── TEST_STRATEGY.md      Story acceptance criteria mapped to tests
+│   ├── QA_TEST_COVERAGE.md   Coverage numbers and gap analysis
+│   ├── QA_PERFORMANCE.md     Lighthouse results and fixes
+│   ├── QA_SECURITY_REVIEW.md Findings, remediations, recommendations
+│   └── reports/              Lighthouse HTML reports
+│
+├── public/robots.txt
+│
 ├── docker/                   Images and stack definition — see docker/README.md
 │   ├── app.Dockerfile
 │   ├── server.Dockerfile
@@ -112,14 +126,16 @@ statements, so `npm run test:coverage` fails if any path stops being exercised.
 Measured on the current tree:
 
 ```
-Statements   : 100% ( 141/141 )
-Branches     : 100% ( 61/61 )
-Functions    : 100% ( 38/38 )
-Lines        : 100% ( 134/134 )
+Statements   : 100% ( 144/144 )
+Branches     : 100% ( 67/67 )
+Functions    : 100% ( 39/39 )
+Lines        : 100% ( 137/137 )
 ```
 
-85 unit/component tests, plus 23 end-to-end tests × 3 browsers = 69 E2E runs
-(13 functional journeys + 10 accessibility checks).
+88 unit/component tests, plus 23 end-to-end tests × 3 browsers = 69 E2E runs
+(13 functional journeys + 10 accessibility checks). Gap analysis and the
+story-to-test mapping are in [docs/QA_TEST_COVERAGE.md](docs/QA_TEST_COVERAGE.md)
+and [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md).
 
 Two files are excluded, both deliberately:
 
@@ -145,10 +161,26 @@ the 375px / 320px viewports — plus keyboard-traversal, visible-focus-indicator
 and 320px-reflow checks that axe cannot automate. All pass on all three
 engines: **zero detected WCAG A/AA violations of any severity**.
 
+Lighthouse's accessibility audit, which runs a broader rule set than the WCAG
+A/AA tags, also scores 100 on mobile and desktop after a heading-order fix it
+surfaced.
+
 Scope honestly stated: axe catches roughly a third to a half of WCAG criteria.
 A clean run means no *automatically detectable* violation, not formal
 conformance — judgement-based criteria (meaningful sequence, error-suggestion
 quality, cognitive load) still need a human review.
+
+### Performance and security
+
+Lighthouse 12 against the production build scores 100 on performance,
+accessibility, best practices and SEO on both form factors; 52.8 KiB total
+transfer, 0 ms blocking time. Details, the issues it found and what was fixed:
+[docs/QA_PERFORMANCE.md](docs/QA_PERFORMANCE.md).
+
+`npm audit` is clean at every severity after upgrading Vite. The code review
+found and fixed one robustness issue (unvalidated data under the storage key)
+and added an XSS regression test. Findings and recommendations:
+[docs/QA_SECURITY_REVIEW.md](docs/QA_SECURITY_REVIEW.md).
 
 ---
 
@@ -186,22 +218,42 @@ currently the only place that would need to change.
 
 **The server is scaffolding.** It serves health endpoints for orchestration and
 reserves `/api/todos`. Todos are still client-side; the endpoint says so in its
-response rather than pretending otherwise.
+response rather than pretending otherwise. This follows the BMad PRD decision
+to ship v1 without a real backend.
 
-Fuller reasoning lives in `_bmad-output/planning-artifacts/`.
+Fuller reasoning lives in `_bmad-output/planning-artifacts/`, and the
+narrative of how those artifacts drove the build is in
+[docs/BMAD_PROCESS.md](docs/BMAD_PROCESS.md).
+
+---
+
+## Process documentation
+
+- [docs/BMAD_PROCESS.md](docs/BMAD_PROCESS.md) — the BMad workflow this repo
+  went through, what each step produced, and where the build deviated from
+  the training brief and why.
+- [docs/AI_INTEGRATION_LOG.md](docs/AI_INTEGRATION_LOG.md) — agent usage,
+  prompts that worked, MCP usage (none, and what substituted), how tests were
+  generated and what was missed, debugging cases, limitations.
+- [docs/FRAMEWORK_COMPARISON.md](docs/FRAMEWORK_COMPARISON.md) — BMad against
+  unstructured prompting, judged on what each produced here.
 
 ---
 
 ## Known gaps
 
 - **No server-side persistence.** Todos live in one browser's `localStorage`;
-  clearing site data loses them, and nothing syncs across devices.
+  clearing site data loses them, and nothing syncs across devices. This was a
+  scope decision in the BMad PRD, not an omission; the API seam is where a
+  server client slots in.
+- **Recovery message wording** differs from the exact strings in story 2.3.
+  Behaviour matches; copy was never reconciled.
 - **Accessibility is machine-audited, not human-audited.** axe-core reports
   zero WCAG A/AA violations across all UI states and browsers, and keyboard,
   focus-visibility and reflow checks pass — but no screen-reader walkthrough or
   manual conformance review has been done.
-- **No performance testing.** No Lighthouse run, no load test. Treat
-  performance as unmeasured.
+- **Performance is lab-measured only.** Lighthouse scores are from a local
+  production build; there are no real-user metrics or load tests.
 - **No authentication.** Single user, no access control.
 - **Health checks are shallow.** `/health/ready` reports process uptime; it does
   not check any downstream dependency, because there are none yet.

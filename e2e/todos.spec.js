@@ -125,7 +125,7 @@ test('lists the newest todo first', async ({ page }) => {
   await addTodo(page, 'Older')
   await addTodo(page, 'Newer')
 
-  await expect(page.getByRole('heading', { level: 3 })).toHaveText(['Newer', 'Older'])
+  await expect(page.getByRole('heading', { level: 2 })).toHaveText(['Newer', 'Older'])
 })
 
 test('works on a mobile viewport', async ({ page }) => {

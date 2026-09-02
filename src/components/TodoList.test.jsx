@@ -85,6 +85,18 @@ describe('TodoList — rendering todos', () => {
   })
 })
 
+describe('TodoList — hostile content', () => {
+  it('renders a script-like description as inert text', () => {
+    const payload = '<img src=x onerror="window.__xss = 1"><script>window.__xss = 2</script>'
+    renderList([todo({ description: payload })])
+    expect(screen.getByRole('heading', { name: payload })).toBeInTheDocument()
+    expect(document.querySelector('img')).toBeNull()
+    expect(document.querySelector('script')).toBeNull()
+    expect(window.__xss).toBeUndefined()
+    expect(screen.getByRole('checkbox', { name: `Mark "${payload}" as complete` })).toBeInTheDocument()
+  })
+})
+
 describe('TodoList — interactions', () => {
   it('calls onToggleTodo with the todo id', async () => {
     const user = userEvent.setup()
