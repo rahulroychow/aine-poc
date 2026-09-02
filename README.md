@@ -1,4 +1,4 @@
-# Aine
+# Aine TODO
 
 A small, single-user todo app: add a task, tick it off, delete it. Tasks
 survive a refresh. That is the whole product, and it is deliberate — the scope
