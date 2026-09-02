@@ -9,7 +9,10 @@
       "Bash(git push *)",
       "Bash(npm test *)",
       "Bash(git commit -m 'fix: improve test setup and localStorage mocking for unit tests *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npx playwright *)",
+      "Bash(npx vitest *)",
+      "Bash(docker run *)"
     ]
   }
 }

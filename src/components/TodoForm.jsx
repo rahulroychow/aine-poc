@@ -80,7 +80,7 @@ function TodoForm({ onAddTodo }) {
         <button
           type="submit"
           disabled={isLoading}
-          className={`px-4 py-2 text-white font-medium rounded-lg whitespace-nowrap transition-colors ${
+          className={`px-4 py-2 text-white font-medium rounded-lg whitespace-nowrap transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
             isLoading
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700'

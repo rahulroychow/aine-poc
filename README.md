@@ -67,7 +67,9 @@ aine-poc/
 │   ├── app.test.js           Supertest coverage of the above
 │   └── server.js             Port binding and graceful shutdown
 │
-├── e2e/todos.spec.js         Playwright journeys
+├── e2e/
+│   ├── todos.spec.js         Playwright functional journeys
+│   └── accessibility.spec.js axe-core WCAG audit + keyboard/focus/reflow checks
 │
 ├── docker/                   Images and stack definition — see docker/README.md
 │   ├── app.Dockerfile
@@ -116,7 +118,8 @@ Functions    : 100% ( 38/38 )
 Lines        : 100% ( 134/134 )
 ```
 
-85 unit/component tests, plus 13 end-to-end journeys × 3 browsers = 39 E2E runs.
+85 unit/component tests, plus 23 end-to-end tests × 3 browsers = 69 E2E runs
+(13 functional journeys + 10 accessibility checks).
 
 Two files are excluded, both deliberately:
 
@@ -134,6 +137,19 @@ starts and stops itself. Selectors go through accessible roles and names
 CSS classes, so they survive restyling and assert the accessibility tree along
 the way.
 
+### Accessibility
+
+`e2e/accessibility.spec.js` runs an axe-core WCAG 2.1 A/AA audit against every
+reachable UI state — empty, populated, completed, mixed, validation error, and
+the 375px / 320px viewports — plus keyboard-traversal, visible-focus-indicator
+and 320px-reflow checks that axe cannot automate. All pass on all three
+engines: **zero detected WCAG A/AA violations of any severity**.
+
+Scope honestly stated: axe catches roughly a third to a half of WCAG criteria.
+A clean run means no *automatically detectable* violation, not formal
+conformance — judgement-based criteria (meaningful sequence, error-suggestion
+quality, cognitive load) still need a human review.
+
 ---
 
 ## Docker
@@ -142,8 +158,10 @@ the way.
 docker compose -f docker/compose.yml up --build
 ```
 
-App on `:3000`, server on `:5000`. Full detail — overlays, health checks, and
-the reasoning behind the image layout — is in **[docker/README.md](docker/README.md)**.
+App on `:3000`, server on `:5000`; both containers report `(healthy)` and the
+app waits for the server before starting. Full detail — overlays, health
+checks, and the reasoning behind the image layout — is in
+**[docker/README.md](docker/README.md)**.
 
 `make help` lists the shortcuts.
 
@@ -178,9 +196,11 @@ Fuller reasoning lives in `_bmad-output/planning-artifacts/`.
 
 - **No server-side persistence.** Todos live in one browser's `localStorage`;
   clearing site data loses them, and nothing syncs across devices.
-- **No accessibility or performance test suite.** The app uses semantic roles
-  and ARIA labels throughout, and the E2E tests exercise them, but neither an
-  axe-core audit nor a Lighthouse run has been done. Treat WCAG conformance and
+- **Accessibility is machine-audited, not human-audited.** axe-core reports
+  zero WCAG A/AA violations across all UI states and browsers, and keyboard,
+  focus-visibility and reflow checks pass — but no screen-reader walkthrough or
+  manual conformance review has been done.
+- **No performance testing.** No Lighthouse run, no load test. Treat
   performance as unmeasured.
 - **No authentication.** Single user, no access control.
 - **Health checks are shallow.** `/health/ready` reports process uptime; it does

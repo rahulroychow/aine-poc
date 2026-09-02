@@ -16,10 +16,10 @@ Both images build from the **repo root** (`context: ..`), so the Dockerfiles can
 copy `package.json`, `src/` and `server/`. What gets excluded from that context
 is set by `/.dockerignore` at the root, not here.
 
-> **Unverified.** These files have not been built or run — Docker was not
-> installed on the machine they were authored on. The application and its test
-> suites are verified; this stack is not. Expect to shake out issues on the
-> first `docker compose build`.
+Verified working: both images build, both containers come up `(healthy)`,
+`app` waits on `server` via `service_healthy`, all three health endpoints
+answer, and the frontend serves its built bundle. Last verified with Docker
+Engine 29 / Compose 5.5 on Colima (macOS arm64).
 
 ---
 
@@ -134,8 +134,14 @@ container.
 ## Image layout
 
 Both Dockerfiles are two-stage: build (or dependency install) in the first
-stage, copy only the result into a clean `node:18-alpine` runtime. Build tools
+stage, copy only the result into a clean `node:22-alpine` runtime. Build tools
 and dev dependencies never reach the shipped image.
+
+Both first stages pin `npm@11` before `npm ci`: the npm 10 bundled with node 22
+misreads lockfiles written by npm 11 — it treats platform-specific *optional*
+dependencies (esbuild's per-platform binaries) as hard requirements and fails
+with `EBADPLATFORM`. Pinning the npm major that wrote `package-lock.json`
+sidesteps the whole class of problem.
 
 Both run as a non-root user (`appuser`, UID 1001) created in the runtime stage,
 with the copied files chowned to it.

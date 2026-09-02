@@ -43,7 +43,10 @@ function TodoList({ todos, onToggleTodo, onDeleteTodo }) {
               type="checkbox"
               checked={todo.completed || false}
               onChange={() => onToggleTodo(todo.id)}
-              className="h-5 w-5 text-blue-600 rounded border-gray-300 cursor-pointer"
+              // Outline, not ring: WebKit ignores author box-shadows on
+              // native-appearance checkboxes, so a Tailwind ring never paints
+              // there. Outline renders outside the control on every engine.
+              className="h-5 w-5 text-blue-600 rounded border-gray-300 cursor-pointer focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-500"
               aria-label={`Mark "${todo.description}" as complete`}
             />
           </div>
@@ -74,7 +77,7 @@ function TodoList({ todos, onToggleTodo, onDeleteTodo }) {
           <div className="flex-shrink-0">
             <button
               onClick={() => onDeleteTodo(todo.id)}
-              className="text-gray-400 hover:text-red-600 transition-colors duration-200"
+              className="text-gray-400 hover:text-red-600 transition-colors duration-200 rounded focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               aria-label={`Delete "${todo.description}"`}
               title="Delete todo"
             >
