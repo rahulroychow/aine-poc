@@ -1,0 +1,49 @@
+version: '3.9'
+
+# ===== Production Configuration =====
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  app:
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+    # Only expose necessary ports
+    ports:
+      - "3000:3000"
+    # Restart policy for production
+    restart: always
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
+  server:
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: warn
+    # Only expose necessary ports
+    ports:
+      - "5000:5000"
+    # Restart policy for production
+    restart: always
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    # Production logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

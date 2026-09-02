@@ -1,0 +1,27 @@
+version: '3.9'
+
+# ===== Development Configuration =====
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  app:
+    environment:
+      NODE_ENV: development
+      DEBUG: "aine:*"
+    # Optional: Mount source code for hot-reload (requires different setup)
+    # volumes:
+    #   - ./src:/app/src
+    #   - ./public:/app/public
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+  server:
+    environment:
+      NODE_ENV: development
+      DEBUG: "aine:*"
+      LOG_LEVEL: debug
+    # Optional: Mount server source for hot-reload
+    # volumes:
+    #   - ./server:/app/server
+    ports:
+      - "${SERVER_PORT:-5000}:5000"
